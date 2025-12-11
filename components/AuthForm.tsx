@@ -16,6 +16,7 @@ import {
 } from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { signIn, signUp } from "@/lib/actions/auth.action";
+import { FirebaseError } from "firebase/app";
 
 const authoFormSchema = (type: FormType) => {
   return z.object({
@@ -88,12 +89,11 @@ const AuthForm = ({ type }: { type: FormType }) => {
         toast.success("Signed in successfully.");
         router.push("/");
       }
-    } catch (error: any) {
-      console.log(error);
-
-      // ============================
-      // 🔥 Firebase Auth Error Handling
-      // ============================
+    } catch (error: unknown) {
+      if (!(error instanceof FirebaseError)) {
+        toast.error("There was an error. Please try again.");
+        return;
+      }
       if (error.code === "auth/email-already-in-use") {
         toast.error(
           "This email is already registered. Please sign in instead."
